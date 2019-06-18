@@ -60,7 +60,7 @@ This crate still requires the New Relic daemon to be running as per the
 [examples]: https://github.com/sd2k/newrelic/tree/master/examples
 [newrelic-sys]: https://crates.io/crates/newrelic-sys
 */
-#![deny(missing_docs)]
+//#![deny(missing_docs)]
 
 #[macro_use]
 extern crate derive_more;
@@ -73,9 +73,9 @@ mod error;
 mod event;
 mod segment;
 mod transaction;
-mod nr_connection;
-mod skill;
-mod tables;
+pub mod nr_connection;
+pub mod skill;
+pub mod tables;
 
 pub use log::Level as LogLevel;
 
@@ -87,3 +87,7 @@ pub use crate::segment::{
     Segment,
 };
 pub use crate::transaction::{Attribute, Transaction};
+
+//use diesel::prelude::*;
+
+//pub use crate::nr_connection::NRConnection;

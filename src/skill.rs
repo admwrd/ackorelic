@@ -1,4 +1,5 @@
-//#[table_name = "users_skill"]
+
+#[derive(Queryable)]
 pub struct Skill {
     pub id: i32,
     pub name: String,

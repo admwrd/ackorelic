@@ -1,5 +1,3 @@
-use diesel::prelude::*;
-
 table! {
     users_skill (id) {
         id -> Int4,

@@ -1,9 +1,17 @@
 use diesel::pg::PgConnection;
 use diesel::connection::Connection;
-use crate::nr_connection::NRConnection;
+use newrelic::nr_connection::NRConnection;
+//extern crate diesel;
+use newrelic::skill::Skill;
+use newrelic::tables::users_skill::dsl::users_skill;
+//use newrelic::*;
+
+use diesel::prelude::*;
+//extern crate newrelic;
 
 
-mod nr_connection;
+
+//mod nr_connection;
 
 pub fn main(){
     let database_url = "postgres://root@127.0.0.1/acko";
@@ -23,9 +31,14 @@ pub fn main(){
 //    println!("resp: {:?}", query1);
 //
 //
-//    let results = skill
-//        .limit(5)
-//        .load::<Skill>(&nr_conn)
-//        .expect("Error loading skills");
 
+
+    let results = users_skill
+        .load::<Skill>(&nr_conn)
+        .expect("Error loading skills");
+
+    println!("Displaying {} skills", results.len());
+    for skill in results {
+        println!("id: {} name: {}", skill.id, skill.name);
+    }
 }
