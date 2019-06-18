@@ -25,11 +25,11 @@ impl Connection for NRConnection {
     }
 
     fn execute(&self, query: &str) -> QueryResult<usize> {
-        //println(query)
-        //let r = self.conn.execute(query)
-        //print r()
-        //r
-        self.conn.execute(query)
+        println!("NRConnection::execute query: {}",query);
+        let result = self.conn.execute(query);
+        //println!("NRConnection::execute query: {} result: {} ", query, result.unwrap());
+        result
+        //self.conn.execute(query)
     }
 
     fn query_by_index<T, U>(&self, source: T) -> QueryResult<Vec<U>>
@@ -39,6 +39,7 @@ impl Connection for NRConnection {
         Pg: HasSqlType<T::SqlType>,
         U: Queryable<T::SqlType, Pg>,
     {
+        println!("NRConnection::query_by_index");
         self.conn.query_by_index(source)
     }
 
@@ -47,6 +48,7 @@ impl Connection for NRConnection {
         T: QueryFragment<Pg> + QueryId,
         U: QueryableByName<Pg>,
     {
+        println!("NRConnection::query_by_name");
         self.conn.query_by_name(source)
     }
 
@@ -54,6 +56,7 @@ impl Connection for NRConnection {
     where
         T: QueryFragment<Pg> + QueryId,
     {
+        println!("NRConnection::execute_returning_count");
         self.conn.execute_returning_count(source)
     }
 
