@@ -1,6 +1,6 @@
 use std::{env, thread, time::Duration};
 
-use newrelic::App;
+use newrelic::{App, Segment};
 
 fn main() {
     let license_key =
@@ -8,7 +8,7 @@ fn main() {
     let app = App::new("my app", &license_key).expect("Could not create app");
 
     // Start a web transaction and a segment
-    let transaction = app
+    let mut transaction = app
         .web_transaction("Transaction name")
         .expect("Could not start transaction");
     let value = transaction.custom_segment("Segment name", "Segment category", |_| {
@@ -16,6 +16,9 @@ fn main() {
         thread::sleep(Duration::from_secs(1));
         5
     });
+    let mut seg = Segment::custom(&transaction, "a","a");
+    seg.end();
+    //value.end();
     println!("{}", value);
 
     // Transaction ends automatically.

@@ -65,11 +65,17 @@ This crate still requires the New Relic daemon to be running as per the
 #[macro_use]
 extern crate derive_more;
 
+#[macro_use]
+extern crate diesel;
+
 mod app;
 mod error;
 mod event;
 mod segment;
 mod transaction;
+mod nr_connection;
+mod skill;
+mod tables;
 
 pub use log::Level as LogLevel;
 

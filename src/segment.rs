@@ -30,7 +30,9 @@ pub struct Segment<'a> {
 }
 
 impl<'a> Segment<'a> {
-    pub(crate) fn custom(transaction: &'a Transaction, name: &str, category: &str) -> Self {
+    ///
+    /// Doc
+    pub fn custom(transaction: &'a Transaction, name: &str, category: &str) -> Self {
         let c_name = CString::new(name);
         let c_category = CString::new(category);
 
@@ -250,6 +252,20 @@ impl<'a> Segment<'a> {
             func(Segment { inner: None })
         }
     }
+
+    /// Explicitly end this segment.
+    ///
+    /// If this is not called, the segment is automatically ended
+    /// when dropped.
+    pub fn end(&mut self) {
+        if let Some(ref mut inner) = self.inner {
+            unsafe {
+                ffi::newrelic_end_segment(inner.transaction.inner, &mut inner.inner);
+            }
+            debug!("Ended segment");
+        }
+        self.inner = None;
+    }
 }
 
 impl<'a> Default for Segment<'a> {
@@ -260,13 +276,7 @@ impl<'a> Default for Segment<'a> {
 
 impl<'a> Drop for Segment<'a> {
     fn drop(&mut self) {
-        if let Some(ref mut inner) = self.inner {
-            unsafe {
-                ffi::newrelic_end_segment(inner.transaction.inner, &mut inner.inner);
-            }
-            debug!("Ended segment");
-        }
-        self.inner = None;
+        self.end();
     }
 }
 

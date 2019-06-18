@@ -12,3 +12,4 @@ license = "MIT OR Apache-2.0"
 derive_more = "0.14.0"
 log = ">0.4.0"
 newrelic-sys = "0.1"
+diesel = { version = "1.0.0", features = ["postgres"] }
