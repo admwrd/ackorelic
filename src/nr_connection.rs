@@ -15,6 +15,7 @@ use crate::{App, Datastore, DatastoreParamsBuilder};
 pub struct NRConnection {
     conn: PgConnection,
 }
+
 impl SimpleConnection for NRConnection {
     fn batch_execute(&self, query: &str) -> QueryResult<()> {
         self.conn.batch_execute(query)
@@ -45,6 +46,11 @@ impl Connection for NRConnection {
         Pg: HasSqlType<T::SqlType>,
         U: Queryable<T::SqlType, Pg>,
     {
+        //let mut query_builder = diesel::backend::DB::QueryBuilder::default();
+        let a = source.as_query();
+        let query_str = diesel::debug_query(&a).to_string();
+        println!("{}", diesel::debug_query(&a));
+        return self.conn.query_by_index(a);
         let t_ref = source;
         let qu = t_ref.as_query();
         let q  = diesel::debug_query(&qu);
@@ -65,15 +71,15 @@ impl Connection for NRConnection {
         .expect("Invalid datastore segment parameters");
 
         let value = transaction.datastore_segment(&segment_params, |_| {
-            //self.conn.query_by_index(source)
-            5
+            self.conn.query_by_index(qu)
         });
 
         println!("NRConnection::query_by_index :{}", q.to_string());
         //println!("{}", diesel::debug_query(&t_ref.as_query()).to_string());
 
         //let t = self.conn.query_by_index(source);
-        Err(Error::AlreadyInTransaction)
+        //Err(Error::AlreadyInTransaction)
+        value
     }
 
     fn query_by_name<T, U>(&self, source: &T) -> QueryResult<Vec<U>>
