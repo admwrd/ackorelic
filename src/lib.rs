@@ -68,6 +68,9 @@ extern crate derive_more;
 #[macro_use]
 extern crate diesel;
 
+#[macro_use]
+extern crate lazy_static;
+
 mod app;
 mod error;
 mod event;
@@ -76,6 +79,7 @@ mod transaction;
 pub mod nr_connection;
 pub mod skill;
 pub mod tables;
+pub mod nr_init;
 
 pub use log::Level as LogLevel;
 

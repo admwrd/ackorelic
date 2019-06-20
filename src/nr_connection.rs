@@ -11,6 +11,7 @@ use std::{env, thread, time::Duration};
 
 use crate::{App, Datastore, DatastoreParamsBuilder};
 
+use crate::nr_init::NR_APP;
 
 pub struct NRConnection {
     conn: PgConnection,
@@ -27,6 +28,7 @@ impl Connection for NRConnection {
     type TransactionManager = AnsiTransactionManager;
 
     fn establish(database_url: &str) -> ConnectionResult<NRConnection> {
+        println!("NRConnection::establish database_url: {}",database_url);
         let pg_conn = PgConnection::establish(database_url)?;
         Ok(NRConnection{conn: pg_conn})
     }
@@ -46,39 +48,23 @@ impl Connection for NRConnection {
         Pg: HasSqlType<T::SqlType>,
         U: Queryable<T::SqlType, Pg>,
     {
-        //let mut query_builder = diesel::backend::DB::QueryBuilder::default();
-        let a = source.as_query();
-        let query_str = diesel::debug_query(&a).to_string();
-        println!("{}", diesel::debug_query(&a));
-        return self.conn.query_by_index(a);
-        let t_ref = source;
-        let qu = t_ref.as_query();
-        let q  = diesel::debug_query(&qu);
-        let q_str = q.to_string();
+        let query = source.as_query();
+        let query_str = diesel::debug_query(&query).to_string();
+        println!("NRConnection::query_by_index :{}", query_str);
 
-        let license_key =
-        env::var("NEW_RELIC_LICENSE_KEY").unwrap_or_else(|_| "example-license-key".to_string());
-        let app = App::new("my app1", &license_key).expect("Could not create app");
-
-        let transaction = app
-        .web_transaction("Transaction name")
+        let transaction = NR_APP
+        .web_transaction("api trans")
         .expect("Could not start transaction");
 
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
         .collection("users_skill")
         .operation("select")
-        .query(&q_str).build()
+        .query(&query_str).build()
         .expect("Invalid datastore segment parameters");
 
         let value = transaction.datastore_segment(&segment_params, |_| {
-            self.conn.query_by_index(qu)
+            self.conn.query_by_index(query)
         });
-
-        println!("NRConnection::query_by_index :{}", q.to_string());
-        //println!("{}", diesel::debug_query(&t_ref.as_query()).to_string());
-
-        //let t = self.conn.query_by_index(source);
-        //Err(Error::AlreadyInTransaction)
         value
     }
 
@@ -102,6 +88,11 @@ impl Connection for NRConnection {
     }
 
     fn transaction_manager(&self) -> &Self::TransactionManager {
+        println!("NRConnection::transaction_manager");
         self.conn.transaction_manager()
     }
+}
+
+fn test() {
+
 }
