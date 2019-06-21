@@ -3,15 +3,26 @@ use diesel::connection::Connection;
 use newrelic::nr_connection::NRConnection;
 use newrelic::skill::Skill;
 use newrelic::tables::users_skill::dsl::users_skill;
+use newrelic::tables::users_skill::dsl;
 
 use diesel::prelude::*;
+use diesel::sql_query;
+
+use newrelic::transaction::Transaction;
 
 //thread_local! {
-//    static transaction:
+//    static transaction: Transaction;
 //}
 
 
 //mod nr_connection;
+
+use std::cell::RefCell;
+use std::thread;
+
+thread_local! {
+    static FOO: RefCell<f32> = RefCell::new(1.0);
+}
 
 pub fn main(){
     let database_url = "postgres://root@127.0.0.1/acko";
@@ -27,6 +38,7 @@ pub fn main(){
 
 
     let results = users_skill
+        .filter(dsl::id.gt(20))
         .load::<Skill>(&nr_conn)
         .expect("Error loading skills");
 
@@ -34,4 +46,33 @@ pub fn main(){
     for skill in results {
         println!("id: {} name: {}", skill.id, skill.name);
     }
+
+
+
+//    let result1 = sql_query(query)
+//        .load::<Skill>(&nr_conn)
+//        .expect("Error loading skills from sql query");
+//
+//    println!("Displaying {} skills from sql query", results.len());
+//    for skill in result1 {
+//        println!("id: {} name: {}", skill.id, skill.name);
+//    }
+
+    FOO.with(|foo| {
+        // `foo` is of type `&RefCell<f64>`
+        *foo.borrow_mut() = 3.0;
+    });
+
+    thread::spawn(move|| {
+        // Note that static objects do not move (`FOO` is the same everywhere),
+        // but the `foo` you get inside the closure will of course be different.
+        FOO.with(|foo| {
+            println!("inner: {}", *foo.borrow());
+        });
+    }).join().unwrap();
+
+    FOO.with(|foo| {
+        println!("main: {}", *foo.borrow());
+    });
+
 }

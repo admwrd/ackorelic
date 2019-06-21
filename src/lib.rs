@@ -75,11 +75,12 @@ mod app;
 mod error;
 mod event;
 mod segment;
-mod transaction;
+pub mod transaction;
 pub mod nr_connection;
 pub mod skill;
 pub mod tables;
 pub mod nr_init;
+pub mod newrelic_fn;
 
 pub use log::Level as LogLevel;
 

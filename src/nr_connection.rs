@@ -13,6 +13,8 @@ use crate::{App, Datastore, DatastoreParamsBuilder};
 
 use crate::nr_init::NR_APP;
 
+use crate::newrelic_fn::TL_TRANSACTION;
+
 pub struct NRConnection {
     conn: PgConnection,
 }
@@ -52,20 +54,24 @@ impl Connection for NRConnection {
         let query_str = diesel::debug_query(&query).to_string();
         println!("NRConnection::query_by_index :{}", query_str);
 
-        let transaction = NR_APP
-        .web_transaction("api trans")
-        .expect("Could not start transaction");
+//        let transaction = NR_APP
+//        .web_transaction("api trans")
+//        .expect("Could not start transaction");
 
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        .collection("users_skill")
-        .operation("select")
+        //.collection("users_skill")
+        //.operation("select")
         .query(&query_str).build()
         .expect("Invalid datastore segment parameters");
 
-        let value = transaction.datastore_segment(&segment_params, |_| {
+        TL_TRANSACTION.with(|tr| {
+            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
             self.conn.query_by_index(query)
-        });
-        value
+
+            });
+            value
+        })
+
     }
 
     fn query_by_name<T, U>(&self, source: &T) -> QueryResult<Vec<U>>
