@@ -1,6 +1,6 @@
 use diesel::connection::{AnsiTransactionManager, SimpleConnection};
 use diesel::deserialize::{Queryable, QueryableByName};
-use diesel::pg::{Pg, PgConnection};
+use diesel::pg::{Pg, PgConnection, TransactionBuilder};
 use diesel::prelude::*;
 use diesel::query_builder::{AsQuery, QueryFragment, QueryId};
 use diesel::result::{ConnectionResult, QueryResult, Error};
@@ -101,6 +101,8 @@ impl Connection for NRConnection {
     }
 }
 
-fn test() {
-
+impl NRConnection {
+    pub fn build_transaction(&self) -> TransactionBuilder {
+        self.conn.build_transaction()
+    }
 }
