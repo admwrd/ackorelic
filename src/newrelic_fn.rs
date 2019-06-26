@@ -2,7 +2,15 @@ use crate::nr_init::NR_APP;
 use crate::transaction::Transaction;
 use std::cell::RefCell;
 use std::borrow::BorrowMut;
-use crate::segment::Segment;
+use crate::acko_segment::Segment;
+use std::thread::sleep;
+use std::time::Duration;
+
+
+//pub struct TLData {
+//    transaction: Transaction,
+//    segments: Vec<ffi::newrelic_segment_t>,
+//}
 
  thread_local! {
     pub static TL_TRANSACTION: RefCell<Transaction> = RefCell::new(NR_APP
@@ -21,6 +29,7 @@ pub fn nr_start_web_transaction(name: &str) -> () {
     TL_TRANSACTION.with(|tr| {
         *tr.borrow_mut() = transaction;
     });
+
 }
 
 pub fn nr_end_transaction() {
@@ -30,19 +39,20 @@ pub fn nr_end_transaction() {
     });
 }
 
-pub fn nr_start_custom_segment(name: &str) -> () {
+pub fn nr_start_custom_segment(name: &str) -> Segment {
     println!("Starting custom segment name : {}", name);
-//    let seg = TL_TRANSACTION.with(|tr| {
-//        Segment::custom(&tr.borrow_mut(), name,"Custom")
-//    });
-//    TL_SEGMENT.with(|segment| {
-//        *segment.borrow_mut() = seg;
-//    });
+
+    let seg = TL_TRANSACTION.with(|tr| {
+        let t = tr.borrow_mut();
+        Segment::start_custom_segment(&t, name)
+    });
+    seg
 }
 
-pub fn nr_end_custom_segment() -> () {
+pub fn nr_end_custom_segment(mut segment: Segment) {
     println!("Ending custom segment");
-//    TL_SEGMENT.with(|seg| {
-//        seg.borrow_mut().end();
-//    });
+    TL_TRANSACTION.with(|tr| {
+        let t = tr.borrow_mut();
+        segment.end_segment(&t);
+    });
 }

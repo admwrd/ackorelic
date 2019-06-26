@@ -13,7 +13,7 @@ use crate::{App, Datastore, DatastoreParamsBuilder};
 
 use crate::nr_init::NR_APP;
 
-use crate::newrelic_fn::{TL_TRANSACTION, nr_start_web_transaction, nr_end_transaction, nr_start_custom_segment};
+use crate::newrelic_fn::{TL_TRANSACTION, nr_start_web_transaction, nr_end_transaction, nr_start_custom_segment, nr_end_custom_segment};
 
 
 pub struct NRConnection {
@@ -59,15 +59,18 @@ impl Connection for NRConnection {
         nr_start_web_transaction("pg_user_skill");
 
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        //.collection("users_skill")
-        //.operation("select")
+        .collection("users_skill")
+        .operation("select")
         .query(&query_str).build()
         .expect("Invalid datastore segment parameters");
 
-        nr_start_custom_segment("custom");
+        let seg = nr_start_custom_segment("custom");
+        nr_end_custom_segment(seg);
         TL_TRANSACTION.with(|tr| {
             let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-            self.conn.query_by_index(query)
+                println!("Sleeping for 5 seconds");
+                thread::sleep(Duration::from_secs(5));
+                self.conn.query_by_index(query)
 
             });
             value

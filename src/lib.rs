@@ -81,6 +81,7 @@ pub mod skill;
 pub mod tables;
 pub mod nr_init;
 pub mod newrelic_fn;
+pub mod acko_segment;
 
 pub use log::Level as LogLevel;
 
