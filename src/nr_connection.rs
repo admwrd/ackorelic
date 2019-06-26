@@ -56,20 +56,20 @@ impl Connection for NRConnection {
         println!("NRConnection::query_by_index :{}", query_str);
 
 
-        nr_start_web_transaction("pg_user_skill");
+        ///nr_start_web_transaction("pg_database");
 
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        .collection("users_skill")
-        .operation("select")
+        //.collection("users_skill")
+        //.operation("select")
         .query(&query_str).build()
         .expect("Invalid datastore segment parameters");
 
-        let seg = nr_start_custom_segment("custom");
-        nr_end_custom_segment(seg);
+        //let seg = nr_start_custom_segment("custom");
+        //nr_end_custom_segment(seg);
         TL_TRANSACTION.with(|tr| {
             let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                println!("Sleeping for 5 seconds");
-                thread::sleep(Duration::from_secs(5));
+                //println!("Sleeping for 5 seconds");
+                //thread::sleep(Duration::from_secs(5));
                 self.conn.query_by_index(query)
 
             });
