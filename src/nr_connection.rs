@@ -17,7 +17,7 @@ use crate::newrelic_fn::{TL_TRANSACTION, nr_start_web_transaction, nr_end_transa
 
 
 pub struct NRConnection {
-    conn: PgConnection,
+    pub conn: PgConnection,
 }
 
 impl SimpleConnection for NRConnection {
