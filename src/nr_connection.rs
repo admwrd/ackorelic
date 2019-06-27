@@ -50,8 +50,7 @@ impl Connection for NRConnection {
     fn execute(&self, query: &str) -> QueryResult<usize> {
         println!("NRConnection::execute query: {}",query);
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        .collection(&query)
-            .operation(&query).build()
+        .collection(&query).operation(&query).build()
         .expect("Invalid datastore segment parameters");
         TL_TRANSACTION.with(|tr| {
             let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {

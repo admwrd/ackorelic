@@ -9,6 +9,7 @@ use diesel::prelude::*;
 use diesel::sql_query;
 
 use newrelic::transaction::Transaction;
+use newrelic::newrelic_fn::{nr_start_web_transaction, nr_end_transaction};
 
 //thread_local! {
 //    static transaction: Transaction;
@@ -25,9 +26,11 @@ thread_local! {
 }
 
 pub fn main(){
+    nr_start_web_transaction("main tr");
     let database_url = "postgres://root@127.0.0.1/acko";
+    println!("in");
     let conn = PgConnection::establish(database_url).expect(&format!("Error connecting to {}", database_url));
-
+    println!("out");
     let query = "select * from users_skill";
     let result = conn.execute(query).unwrap();
     println!("pg result : {}", result);

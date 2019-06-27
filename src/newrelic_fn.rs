@@ -22,11 +22,12 @@ use std::time::Duration;
 
 pub fn nr_start_web_transaction(name: &str) -> () {
     println!("Starting web transaction name : {}", name);
-    let transaction = NR_APP
-        .web_transaction(name)
-        .expect("Could not start transaction");
+
 
     TL_TRANSACTION.with(|tr| {
+        let transaction = NR_APP
+        .web_transaction(name)
+        .expect("Could not start transaction");
         *tr.borrow_mut() = transaction;
     });
 
