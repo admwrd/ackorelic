@@ -32,16 +32,34 @@ impl Connection for NRConnection {
 
     fn establish(database_url: &str) -> ConnectionResult<NRConnection> {
         println!("NRConnection::establish database_url: {}",database_url);
-        let pg_conn = PgConnection::establish(database_url)?;
-        Ok(NRConnection{conn: pg_conn})
+        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+            .collection("establish connections")
+            .build()
+            .expect("Invalid datastore segment parameters");
+        TL_TRANSACTION.with(|tr| {
+            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                let pg_conn = PgConnection::establish(database_url)?;
+                Ok(NRConnection{conn: pg_conn})
+            });
+            value
+        })
+        //let pg_conn = PgConnection::establish(database_url)?;
+        //Ok(NRConnection{conn: pg_conn})
     }
 
     fn execute(&self, query: &str) -> QueryResult<usize> {
         println!("NRConnection::execute query: {}",query);
-        let result = self.conn.execute(query);
-        //println!("NRConnection::execute query: {} result: {} ", query, result.unwrap());
-        result
-        //self.conn.execute(query)
+        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+        .collection(&query)
+            .operation(&query).build()
+        .expect("Invalid datastore segment parameters");
+        TL_TRANSACTION.with(|tr| {
+            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                self.conn.execute(query)
+
+            });
+            value
+        })
     }
 
     fn query_by_index<T, U>(&self, source: T) -> QueryResult<Vec<U>>
@@ -55,21 +73,14 @@ impl Connection for NRConnection {
         let query_str = diesel::debug_query(&query).to_string();
         println!("NRConnection::query_by_index :{}", query_str);
 
-
-        ///nr_start_web_transaction("pg_database");
-
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        //.collection("users_skill")
+        .collection(&query_str)
         //.operation("select")
         .query(&query_str).build()
         .expect("Invalid datastore segment parameters");
 
-        //let seg = nr_start_custom_segment("custom");
-        //nr_end_custom_segment(seg);
         TL_TRANSACTION.with(|tr| {
             let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                //println!("Sleeping for 5 seconds");
-                //thread::sleep(Duration::from_secs(5));
                 self.conn.query_by_index(query)
 
             });
@@ -85,9 +96,18 @@ impl Connection for NRConnection {
         U: QueryableByName<Pg>,
     {
         println!("NRConnection::query_by_name");
-        //let q = diesel::debug_query(&source.);
-        //println!("NRConnection::query_by_index :{}", q.to_string());
-        self.conn.query_by_name(source)
+        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+        .collection("query_by_name").build()
+        .expect("Invalid datastore segment parameters");
+
+        TL_TRANSACTION.with(|tr| {
+            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                self.conn.query_by_name(source)
+
+            });
+            value
+        })
+
     }
 
     fn execute_returning_count<T>(&self, source: &T) -> QueryResult<usize>
@@ -95,7 +115,18 @@ impl Connection for NRConnection {
         T: QueryFragment<Pg> + QueryId,
     {
         println!("NRConnection::execute_returning_count");
-        self.conn.execute_returning_count(source)
+        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+        .collection("execute_returning_count").build()
+        .expect("Invalid datastore segment parameters");
+
+        TL_TRANSACTION.with(|tr| {
+            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                self.conn.execute_returning_count(source)
+
+            });
+            value
+        })
+
     }
 
     fn transaction_manager(&self) -> &Self::TransactionManager {
