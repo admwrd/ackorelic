@@ -19,7 +19,7 @@ fn main() {
     let mut seg = Segment::custom(&transaction, "a","a");
     seg.end();
     //value.end();
-    println!("{}", value);
+    //println!("{}", value);
 
     // Transaction ends automatically.
 

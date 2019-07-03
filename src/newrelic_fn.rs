@@ -21,7 +21,7 @@ use std::time::Duration;
 }
 
 pub fn nr_start_web_transaction(name: &str) -> () {
-    println!("Starting web transaction name : {}", name);
+    //println!("Starting web transaction name : {}", name);
 
 
     TL_TRANSACTION.with(|tr| {
@@ -34,14 +34,14 @@ pub fn nr_start_web_transaction(name: &str) -> () {
 }
 
 pub fn nr_end_transaction() {
-    println!("Ending web transaction");
+    //println!("Ending web transaction");
     TL_TRANSACTION.with(|tr| {
         tr.borrow_mut().end();
     });
 }
 
 pub fn nr_start_custom_segment(name: &str) -> Segment {
-    println!("Starting custom segment name : {}", name);
+    //println!("Starting custom segment name : {}", name);
 
     let seg = TL_TRANSACTION.with(|tr| {
         let t = tr.borrow_mut();
@@ -51,7 +51,7 @@ pub fn nr_start_custom_segment(name: &str) -> Segment {
 }
 
 pub fn nr_end_custom_segment(mut segment: Segment) {
-    println!("Ending custom segment");
+    //println!("Ending custom segment");
     TL_TRANSACTION.with(|tr| {
         let t = tr.borrow_mut();
         segment.end_segment(&t);

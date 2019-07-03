@@ -21,7 +21,7 @@ fn main() {
         thread::sleep(Duration::from_secs(5));
         5
     });
-    println!("{}", value);
+    //println!("{}", value);
 
     // Transaction ends automatically.
 

@@ -24,7 +24,7 @@ fn main() {
         });
         expensive_val_1 * expensive_val_2
     });
-    println!("{}", value);
+    //println!("{}", value);
 
     // Transaction ends automatically.
 

@@ -83,7 +83,7 @@ impl App {
     ///
     /// This function will return an `Err` if the name contains a NUL byte.
     pub fn web_transaction(&self, name: &str) -> Result<Transaction> {
-        println!("Starting transaction from library name: {}", name);
+        //println!("Starting transaction from library name: {}", name);
         Transaction::web(self, name)
     }
 

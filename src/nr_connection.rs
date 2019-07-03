@@ -31,7 +31,7 @@ impl Connection for NRConnection {
     type TransactionManager = AnsiTransactionManager;
 
     fn establish(database_url: &str) -> ConnectionResult<NRConnection> {
-        println!("NRConnection::establish database_url: {}",database_url);
+        //println!("NRConnection::establish database_url: {}",database_url);
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
             .collection("establish connections")
             .build()
@@ -48,7 +48,7 @@ impl Connection for NRConnection {
     }
 
     fn execute(&self, query: &str) -> QueryResult<usize> {
-        println!("NRConnection::execute query: {}",query);
+        //println!("NRConnection::execute query: {}",query);
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
         .collection(&query).operation(&query).build()
         .expect("Invalid datastore segment parameters");
@@ -70,7 +70,7 @@ impl Connection for NRConnection {
     {
         let query = source.as_query();
         let query_str = diesel::debug_query(&query).to_string();
-        println!("NRConnection::query_by_index :{}", query_str);
+        //println!("NRConnection::query_by_index :{}", query_str);
 
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
         .collection(&query_str)
@@ -94,7 +94,7 @@ impl Connection for NRConnection {
         T: QueryFragment<Pg> + QueryId,
         U: QueryableByName<Pg>,
     {
-        println!("NRConnection::query_by_name");
+        //println!("NRConnection::query_by_name");
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
         .collection("query_by_name").build()
         .expect("Invalid datastore segment parameters");
@@ -113,7 +113,7 @@ impl Connection for NRConnection {
     where
         T: QueryFragment<Pg> + QueryId,
     {
-        println!("NRConnection::execute_returning_count");
+        //println!("NRConnection::execute_returning_count");
         let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
         .collection("execute_returning_count").build()
         .expect("Invalid datastore segment parameters");
@@ -129,7 +129,7 @@ impl Connection for NRConnection {
     }
 
     fn transaction_manager(&self) -> &Self::TransactionManager {
-        println!("NRConnection::transaction_manager");
+        //println!("NRConnection::transaction_manager");
         self.conn.transaction_manager()
     }
 }

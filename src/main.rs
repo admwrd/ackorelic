@@ -28,16 +28,16 @@ thread_local! {
 pub fn main(){
     nr_start_web_transaction("main tr");
     let database_url = "postgres://root@127.0.0.1/acko";
-    println!("in");
+    //println!("in");
     let conn = PgConnection::establish(database_url).expect(&format!("Error connecting to {}", database_url));
-    println!("out");
+    //println!("out");
     let query = "select * from users_skill";
     let result = conn.execute(query).unwrap();
-    println!("pg result : {}", result);
+    //println!("pg result : {}", result);
 
     let nr_conn = NRConnection::establish(database_url).expect(&format!("Error connecting to {}", database_url));
     let nr_result = nr_conn.execute(query).unwrap();
-    println!("nr result : {}", nr_result);
+    //println!("nr result : {}", nr_result);
 
 
     let results = users_skill
@@ -45,9 +45,9 @@ pub fn main(){
         .load::<Skill>(&nr_conn)
         .expect("Error loading skills");
 
-    println!("Displaying {} skills", results.len());
+    //println!("Displaying {} skills", results.len());
     for skill in results {
-        println!("id: {} name: {}", skill.id, skill.name);
+        //println!("id: {} name: {}", skill.id, skill.name);
     }
 
 
@@ -56,9 +56,9 @@ pub fn main(){
 //        .load::<Skill>(&nr_conn)
 //        .expect("Error loading skills from sql query");
 //
-//    println!("Displaying {} skills from sql query", results.len());
+//    //println!("Displaying {} skills from sql query", results.len());
 //    for skill in result1 {
-//        println!("id: {} name: {}", skill.id, skill.name);
+//        //println!("id: {} name: {}", skill.id, skill.name);
 //    }
 
     FOO.with(|foo| {
@@ -70,12 +70,12 @@ pub fn main(){
         // Note that static objects do not move (`FOO` is the same everywhere),
         // but the `foo` you get inside the closure will of course be different.
         FOO.with(|foo| {
-            println!("inner: {}", *foo.borrow());
+            //println!("inner: {}", *foo.borrow());
         });
     }).join().unwrap();
 
     FOO.with(|foo| {
-        println!("main: {}", *foo.borrow());
+        //println!("main: {}", *foo.borrow());
     });
 
 }
