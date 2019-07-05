@@ -11,7 +11,7 @@ use std::{env, thread, time::Duration};
 
 use crate::{App, Datastore, DatastoreParamsBuilder};
 
-use crate::nr_init::NR_APP;
+use crate::nr_init::{NR_APP, ENABLE_NEW_RELIC};
 
 use crate::newrelic_fn::{TL_TRANSACTION, nr_start_web_transaction, nr_end_transaction, nr_start_custom_segment, nr_end_custom_segment};
 
@@ -32,33 +32,41 @@ impl Connection for NRConnection {
 
     fn establish(database_url: &str) -> ConnectionResult<NRConnection> {
         //println!("NRConnection::establish database_url: {}",database_url);
-        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-            .collection("establish connections")
-            .build()
-            .expect("Invalid datastore segment parameters");
-        TL_TRANSACTION.with(|tr| {
-            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                let pg_conn = PgConnection::establish(database_url)?;
-                Ok(NRConnection{conn: pg_conn})
-            });
-            value
-        })
+        if *ENABLE_NEW_RELIC {
+            let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+                .collection("establish connections")
+                .build()
+                .expect("Invalid datastore segment parameters");
+            TL_TRANSACTION.with(|tr| {
+                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                    let pg_conn = PgConnection::establish(database_url)?;
+                    Ok(NRConnection { conn: pg_conn })
+                });
+                value
+            })
+        }else {
+            let pg_conn = PgConnection::establish(database_url)?;
+            Ok(NRConnection { conn: pg_conn })
+        }
         //let pg_conn = PgConnection::establish(database_url)?;
         //Ok(NRConnection{conn: pg_conn})
     }
 
     fn execute(&self, query: &str) -> QueryResult<usize> {
         //println!("NRConnection::execute query: {}",query);
-        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        .collection(&query).operation(&query).build()
-        .expect("Invalid datastore segment parameters");
-        TL_TRANSACTION.with(|tr| {
-            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                self.conn.execute(query)
-
-            });
-            value
-        })
+        if *ENABLE_NEW_RELIC {
+            let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+                .collection(&query).operation(&query).build()
+                .expect("Invalid datastore segment parameters");
+            TL_TRANSACTION.with(|tr| {
+                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                    self.conn.execute(query)
+                });
+                value
+            })
+        }else{
+            self.conn.execute(query)
+        }
     }
 
     fn query_by_index<T, U>(&self, source: T) -> QueryResult<Vec<U>>
@@ -68,24 +76,26 @@ impl Connection for NRConnection {
         Pg: HasSqlType<T::SqlType>,
         U: Queryable<T::SqlType, Pg>,
     {
-        let query = source.as_query();
-        let query_str = diesel::debug_query(&query).to_string();
-        //println!("NRConnection::query_by_index :{}", query_str);
+        if *ENABLE_NEW_RELIC {
+            let query = source.as_query();
+            let query_str = diesel::debug_query(&query).to_string();
+            //println!("NRConnection::query_by_index :{}", query_str);
 
-        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        .collection(&query_str)
-        //.operation("select")
-        .query(&query_str).build()
-        .expect("Invalid datastore segment parameters");
+            let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+                .collection(&query_str)
+                //.operation("select")
+                .query(&query_str).build()
+                .expect("Invalid datastore segment parameters");
 
-        TL_TRANSACTION.with(|tr| {
-            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                self.conn.query_by_index(query)
-
-            });
-            value
-        })
-
+            TL_TRANSACTION.with(|tr| {
+                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                    self.conn.query_by_index(query)
+                });
+                value
+            })
+        }else {
+            self.conn.query_by_index(source)
+        }
 
     }
 
@@ -95,17 +105,20 @@ impl Connection for NRConnection {
         U: QueryableByName<Pg>,
     {
         //println!("NRConnection::query_by_name");
-        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        .collection("query_by_name").build()
-        .expect("Invalid datastore segment parameters");
+        if *ENABLE_NEW_RELIC {
+            let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+                .collection("query_by_name").build()
+                .expect("Invalid datastore segment parameters");
 
-        TL_TRANSACTION.with(|tr| {
-            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                self.conn.query_by_name(source)
-
-            });
-            value
-        })
+            TL_TRANSACTION.with(|tr| {
+                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                    self.conn.query_by_name(source)
+                });
+                value
+            })
+        }else {
+            self.conn.query_by_name(source)
+        }
 
     }
 
@@ -114,17 +127,20 @@ impl Connection for NRConnection {
         T: QueryFragment<Pg> + QueryId,
     {
         //println!("NRConnection::execute_returning_count");
-        let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-        .collection("execute_returning_count").build()
-        .expect("Invalid datastore segment parameters");
+        if *ENABLE_NEW_RELIC {
+            let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
+                .collection("execute_returning_count").build()
+                .expect("Invalid datastore segment parameters");
 
-        TL_TRANSACTION.with(|tr| {
-            let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                self.conn.execute_returning_count(source)
-
-            });
-            value
-        })
+            TL_TRANSACTION.with(|tr| {
+                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                    self.conn.execute_returning_count(source)
+                });
+                value
+            })
+        }else {
+            self.conn.execute_returning_count(source)
+        }
 
     }
 

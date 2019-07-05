@@ -11,6 +11,11 @@ use diesel::sql_query;
 use newrelic::transaction::Transaction;
 use newrelic::newrelic_fn::{nr_start_web_transaction, nr_end_transaction};
 
+use newrelic::nr_init::ENABLE_NEW_RELIC;
+
+use std::str::FromStr;
+use std::env;
+
 //thread_local! {
 //    static transaction: Transaction;
 //}
@@ -20,6 +25,7 @@ use newrelic::newrelic_fn::{nr_start_web_transaction, nr_end_transaction};
 
 use std::cell::RefCell;
 use std::thread;
+use core::borrow::BorrowMut;
 
 thread_local! {
     static FOO: RefCell<f32> = RefCell::new(1.0);
@@ -38,7 +44,6 @@ pub fn main(){
     let nr_conn = NRConnection::establish(database_url).expect(&format!("Error connecting to {}", database_url));
     let nr_result = nr_conn.execute(query).unwrap();
     //println!("nr result : {}", nr_result);
-
 
     let results = users_skill
         .filter(dsl::id.gt(20))
@@ -77,5 +82,15 @@ pub fn main(){
     FOO.with(|foo| {
         //println!("main: {}", *foo.borrow());
     });
+
+//    let x : bool  = *ENABLE_NEW_RELIC;
+//    if x {
+//        println!("HI");
+//    }
+//        let enable_nr = env::var("ENABLE_NEW_RELIC").unwrap_or_else(|_| "false".to_string());
+//    println!("{}", &enable_nr);
+//        let x : bool = FromStr::from_str(&enable_nr).unwrap();
+//        println!("{}", &x);
+//        //println!("ENABLE_NEW_RELIC :{}", x.clone().unwrap());
 
 }

@@ -6,7 +6,7 @@ use newrelic_sys as ffi;
 use crate::{error::Result, transaction::Transaction};
 
 pub struct Segment {
-    inner: *mut ffi::newrelic_segment_t,
+    pub inner: *mut ffi::newrelic_segment_t,
 }
 
 impl Segment {
