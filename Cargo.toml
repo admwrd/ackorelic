@@ -1,5 +1,5 @@
 [package]
-name = "newrelic"
+name = "ackorelic"
 description = "Idiomatic Rust bindings to the New Relic C SDK."
 
 version = "1.1.0"
