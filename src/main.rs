@@ -1,17 +1,17 @@
 use diesel::pg::PgConnection;
 use diesel::connection::Connection;
-use newrelic::nr_connection::NRConnection;
-use newrelic::skill::Skill;
-use newrelic::tables::users_skill::dsl::users_skill;
-use newrelic::tables::users_skill::dsl;
+use ackorelic::nr_connection::NRConnection;
+use ackorelic::skill::Skill;
+use ackorelic::tables::users_skill::dsl::users_skill;
+use ackorelic::tables::users_skill::dsl;
 
 use diesel::prelude::*;
 use diesel::sql_query;
 
-use newrelic::transaction::Transaction;
-use newrelic::newrelic_fn::{nr_start_web_transaction, nr_end_transaction};
+use ackorelic::transaction::Transaction;
+use ackorelic::newrelic_fn::{nr_start_web_transaction, nr_end_transaction};
 
-use newrelic::nr_init::ENABLE_NEW_RELIC;
+use ackorelic::nr_init::ENABLE_NEW_RELIC;
 
 use std::str::FromStr;
 use std::env;
