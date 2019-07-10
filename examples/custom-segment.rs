@@ -1,6 +1,6 @@
 use std::{env, thread, time::Duration};
 
-use newrelic::{App, Segment};
+use ackorelic::{App, Segment};
 
 fn main() {
     let license_key =
@@ -8,10 +8,10 @@ fn main() {
     let app = App::new("my app", &license_key).expect("Could not create app");
 
     // Start a web transaction and a segment
-    let mut transaction = app
+    let transaction = app
         .web_transaction("Transaction name")
         .expect("Could not start transaction");
-    let value = transaction.custom_segment("Segment name", "Segment category", |_| {
+    let _value = transaction.custom_segment("Segment name", "Segment category", |_| {
         // Interesting application code happens here
         thread::sleep(Duration::from_secs(1));
         5

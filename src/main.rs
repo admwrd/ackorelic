@@ -6,15 +6,15 @@ use ackorelic::tables::users_skill::dsl::users_skill;
 use ackorelic::tables::users_skill::dsl;
 
 use diesel::prelude::*;
-use diesel::sql_query;
 
-use ackorelic::transaction::Transaction;
-use ackorelic::newrelic_fn::{nr_start_web_transaction, nr_end_transaction};
 
-use ackorelic::nr_init::ENABLE_NEW_RELIC;
 
-use std::str::FromStr;
-use std::env;
+use ackorelic::newrelic_fn::{nr_start_web_transaction};
+
+
+
+
+
 
 //thread_local! {
 //    static transaction: Transaction;
@@ -38,11 +38,11 @@ pub fn main(){
     let conn = PgConnection::establish(database_url).expect(&format!("Error connecting to {}", database_url));
     //println!("out");
     let query = "select * from users_skill";
-    let result = conn.execute(query).unwrap();
+    let _result = conn.execute(query).unwrap();
     //println!("pg result : {}", result);
 
     let nr_conn = NRConnection::establish(database_url).expect(&format!("Error connecting to {}", database_url));
-    let nr_result = nr_conn.execute(query).unwrap();
+    let _nr_result = nr_conn.execute(query).unwrap();
     //println!("nr result : {}", nr_result);
 
     let results = users_skill
@@ -51,7 +51,7 @@ pub fn main(){
         .expect("Error loading skills");
 
     //println!("Displaying {} skills", results.len());
-    for skill in results {
+    for _skill in results {
         //println!("id: {} name: {}", skill.id, skill.name);
     }
 
@@ -74,12 +74,12 @@ pub fn main(){
     thread::spawn(move|| {
         // Note that static objects do not move (`FOO` is the same everywhere),
         // but the `foo` you get inside the closure will of course be different.
-        FOO.with(|foo| {
+        FOO.with(|_foo| {
             //println!("inner: {}", *foo.borrow());
         });
     }).join().unwrap();
 
-    FOO.with(|foo| {
+    FOO.with(|_foo| {
         //println!("main: {}", *foo.borrow());
     });
 

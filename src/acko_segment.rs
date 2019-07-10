@@ -1,9 +1,9 @@
 use std::ffi::CString;
 
-use log::{debug, error};
+
 use newrelic_sys as ffi;
 
-use crate::{error::Result, transaction::Transaction};
+use crate::{transaction::Transaction};
 
 pub struct Segment {
     pub inner: *mut ffi::newrelic_segment_t,

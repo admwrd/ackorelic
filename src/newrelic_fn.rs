@@ -3,11 +3,11 @@ use crate::transaction::Transaction;
 use std::cell::RefCell;
 use std::borrow::BorrowMut;
 use crate::acko_segment::Segment;
-use std::thread::sleep;
-use std::time::Duration;
+
+
 use crate::nr_init::ENABLE_NEW_RELIC;
 use newrelic_sys as ffi;
-use std::ptr::{null, null_mut};
+use std::ptr::{null_mut};
 
 
 //pub struct TLData {
@@ -60,7 +60,7 @@ pub fn nr_start_custom_segment(name: &str) -> Segment {
 
 }
 
-pub fn nr_end_custom_segment(mut segment: Segment) {
+pub fn nr_end_custom_segment(segment: Segment) {
     //println!("Ending custom segment");
     if *ENABLE_NEW_RELIC {
         TL_TRANSACTION.with(|tr| {

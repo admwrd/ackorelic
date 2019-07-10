@@ -3,17 +3,17 @@ use diesel::deserialize::{Queryable, QueryableByName};
 use diesel::pg::{Pg, PgConnection, TransactionBuilder};
 use diesel::prelude::*;
 use diesel::query_builder::{AsQuery, QueryFragment, QueryId};
-use diesel::result::{ConnectionResult, QueryResult, Error};
+use diesel::result::{ConnectionResult, QueryResult};
 use diesel::sql_types::HasSqlType;
 //use diesel::query_builder::DebugQuery;
 
-use std::{env, thread, time::Duration};
 
-use crate::{App, Datastore, DatastoreParamsBuilder};
 
-use crate::nr_init::{NR_APP, ENABLE_NEW_RELIC};
+use crate::{Datastore, DatastoreParamsBuilder};
 
-use crate::newrelic_fn::{TL_TRANSACTION, nr_start_web_transaction, nr_end_transaction, nr_start_custom_segment, nr_end_custom_segment};
+use crate::nr_init::{ENABLE_NEW_RELIC};
+
+use crate::newrelic_fn::{TL_TRANSACTION};
 
 
 pub struct NRConnection {

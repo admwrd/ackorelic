@@ -1,6 +1,6 @@
 use std::{env, thread, time::Duration};
 
-use newrelic::{App, ExternalParamsBuilder};
+use ackorelic::{App, ExternalParamsBuilder};
 
 fn main() {
     let license_key =
@@ -16,7 +16,7 @@ fn main() {
         .library("reqwest")
         .build()
         .expect("Invalid external segment parameters");
-    let value = transaction.external_segment(&segment_params, |_| {
+    let _value = transaction.external_segment(&segment_params, |_| {
         // Interesting application code happens here
         thread::sleep(Duration::from_secs(1));
         5

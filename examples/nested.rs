@@ -1,6 +1,6 @@
 use std::{env, thread, time::Duration};
 
-use newrelic::App;
+use ackorelic::App;
 
 fn main() {
     let license_key =
@@ -11,7 +11,7 @@ fn main() {
     let transaction = app
         .web_transaction("Transaction name")
         .expect("Could not start transaction");
-    let value = transaction.custom_segment("Segment name", "Segment category", |s| {
+    let _value = transaction.custom_segment("Segment name", "Segment category", |s| {
         // Interesting application code happens here
         thread::sleep(Duration::from_secs(1));
         let expensive_val_1 = s.custom_nested("First nested segment", "Nested category", |_| {

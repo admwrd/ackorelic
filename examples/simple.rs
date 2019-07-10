@@ -1,6 +1,6 @@
 use std::{env, thread, time::Duration};
 
-use newrelic::App;
+use ackorelic::App;
 
 fn main() {
     let license_key =
