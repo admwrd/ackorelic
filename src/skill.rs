@@ -1,4 +1,3 @@
-
 #[derive(Queryable)]
 pub struct Skill {
     pub id: i32,

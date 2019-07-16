@@ -1,25 +1,24 @@
 use std::ffi::CString;
 
-
 use newrelic_sys as ffi;
 
-use crate::{transaction::Transaction};
+use crate::transaction::Transaction;
 
 pub struct Segment {
     pub inner: *mut ffi::newrelic_segment_t,
 }
 
 impl Segment {
-    pub fn start_custom_segment(transaction: &Transaction, name: &str) -> Self{
+    pub fn start_custom_segment(transaction: &Transaction, name: &str) -> Self {
         let c_name = CString::new(name);
         let c_category = CString::new("Custom");
         let inner = unsafe {
-                    ffi::newrelic_start_segment(
-                        transaction.inner,
-                        c_name.unwrap().as_ptr(),
-                        c_category.unwrap().as_ptr(),
-                    )
-                };
+            ffi::newrelic_start_segment(
+                transaction.inner,
+                c_name.unwrap().as_ptr(),
+                c_category.unwrap().as_ptr(),
+            )
+        };
         Segment { inner }
         /*let inner = match (c_name, c_category) {
             (Ok(c_name), Ok(c_category)) => {
@@ -55,8 +54,8 @@ impl Segment {
 
     pub fn end_segment(mut self, transaction: &Transaction) {
         unsafe {
-                ffi::newrelic_end_segment(transaction.inner, &mut self.inner);
-            }
+            ffi::newrelic_end_segment(transaction.inner, &mut self.inner);
+        }
     }
 }
 //

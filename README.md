@@ -10,7 +10,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-newrelic = { git = "https://github.com/ackotech/newrelic.git" }
+ackorelic = "*"
 ```
 
 You can then instrument your code as follows:
@@ -18,7 +18,7 @@ You can then instrument your code as follows:
 ```rust
 use std::{env, thread, time::Duration};
 
-use newrelic::{App, NewRelicConfig};
+use ackorelic::{App, NewRelicConfig};
 
 fn main() {
     let license_key =
@@ -73,7 +73,7 @@ However, when working with Segments in the library, the failure of the segment i
 This behaviour may be changed in future, if it proves to be unpopular.
 
 ```rust
-use newrelic::{App, NewRelicConfig};
+use ackorelic::{App, NewRelicConfig};
 
 fn main() {
     let app =

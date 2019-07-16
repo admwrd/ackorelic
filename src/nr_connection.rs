@@ -7,14 +7,11 @@ use diesel::result::{ConnectionResult, QueryResult};
 use diesel::sql_types::HasSqlType;
 //use diesel::query_builder::DebugQuery;
 
-
-
 use crate::{Datastore, DatastoreParamsBuilder};
 
-use crate::nr_init::{ENABLE_NEW_RELIC};
+use crate::nr_init::ENABLE_NEW_RELIC;
 
-use crate::newrelic_fn::{TL_TRANSACTION};
-
+use crate::newrelic_fn::TL_TRANSACTION;
 
 pub struct NRConnection {
     pub conn: PgConnection,
@@ -44,7 +41,7 @@ impl Connection for NRConnection {
                 });
                 value
             })
-        }else {
+        } else {
             let pg_conn = PgConnection::establish(database_url)?;
             Ok(NRConnection { conn: pg_conn })
         }
@@ -56,15 +53,17 @@ impl Connection for NRConnection {
         //println!("NRConnection::execute query: {}",query);
         if *ENABLE_NEW_RELIC {
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection(&query).operation(&query).build()
+                .collection(&query)
+                .operation(&query)
+                .build()
                 .expect("Invalid datastore segment parameters");
             TL_TRANSACTION.with(|tr| {
-                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                    self.conn.execute(query)
-                });
+                let value = tr
+                    .borrow_mut()
+                    .datastore_segment(&segment_params, |_| self.conn.execute(query));
                 value
             })
-        }else{
+        } else {
             self.conn.execute(query)
         }
     }
@@ -84,19 +83,19 @@ impl Connection for NRConnection {
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
                 .collection(&query_str)
                 //.operation("select")
-                .query(&query_str).build()
+                .query(&query_str)
+                .build()
                 .expect("Invalid datastore segment parameters");
 
             TL_TRANSACTION.with(|tr| {
-                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                    self.conn.query_by_index(query)
-                });
+                let value = tr
+                    .borrow_mut()
+                    .datastore_segment(&segment_params, |_| self.conn.query_by_index(query));
                 value
             })
-        }else {
+        } else {
             self.conn.query_by_index(source)
         }
-
     }
 
     fn query_by_name<T, U>(&self, source: &T) -> QueryResult<Vec<U>>
@@ -107,19 +106,19 @@ impl Connection for NRConnection {
         //println!("NRConnection::query_by_name");
         if *ENABLE_NEW_RELIC {
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection("query_by_name").build()
+                .collection("query_by_name")
+                .build()
                 .expect("Invalid datastore segment parameters");
 
             TL_TRANSACTION.with(|tr| {
-                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                    self.conn.query_by_name(source)
-                });
+                let value = tr
+                    .borrow_mut()
+                    .datastore_segment(&segment_params, |_| self.conn.query_by_name(source));
                 value
             })
-        }else {
+        } else {
             self.conn.query_by_name(source)
         }
-
     }
 
     fn execute_returning_count<T>(&self, source: &T) -> QueryResult<usize>
@@ -129,7 +128,8 @@ impl Connection for NRConnection {
         //println!("NRConnection::execute_returning_count");
         if *ENABLE_NEW_RELIC {
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection("execute_returning_count").build()
+                .collection("execute_returning_count")
+                .build()
                 .expect("Invalid datastore segment parameters");
 
             TL_TRANSACTION.with(|tr| {
@@ -138,10 +138,9 @@ impl Connection for NRConnection {
                 });
                 value
             })
-        }else {
+        } else {
             self.conn.execute_returning_count(source)
         }
-
     }
 
     fn transaction_manager(&self) -> &Self::TransactionManager {

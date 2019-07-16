@@ -16,7 +16,7 @@ fn main() {
         thread::sleep(Duration::from_secs(1));
         5
     });
-    let mut seg = Segment::custom(&transaction, "a","a");
+    let mut seg = Segment::custom(&transaction, "a", "a");
     seg.end();
     //value.end();
     //println!("{}", value);

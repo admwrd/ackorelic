@@ -1,21 +1,18 @@
+use crate::acko_segment::Segment;
 use crate::nr_init::NR_APP;
 use crate::transaction::Transaction;
 use std::cell::RefCell;
-use std::borrow::BorrowMut;
-use crate::acko_segment::Segment;
-
 
 use crate::nr_init::ENABLE_NEW_RELIC;
 use newrelic_sys as ffi;
-use std::ptr::{null_mut};
-
+use std::ptr::null_mut;
 
 //pub struct TLData {
 //    transaction: Transaction,
 //    segments: Vec<ffi::newrelic_segment_t>,
 //}
 
- thread_local! {
+thread_local! {
     pub static TL_TRANSACTION: RefCell<Transaction> = RefCell::new(NR_APP
         .web_transaction("init")
         .expect("Could not start transaction"));
@@ -53,11 +50,10 @@ pub fn nr_start_custom_segment(name: &str) -> Segment {
             Segment::start_custom_segment(&t, name)
         });
         seg
-    }else {
+    } else {
         let inner: *mut ffi::newrelic_segment_t = null_mut();
-        Segment{ inner }
+        Segment { inner }
     }
-
 }
 
 pub fn nr_end_custom_segment(segment: Segment) {

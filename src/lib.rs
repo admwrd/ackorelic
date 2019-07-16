@@ -71,17 +71,17 @@ extern crate diesel;
 #[macro_use]
 extern crate lazy_static;
 
+pub mod acko_segment;
 mod app;
 mod error;
 mod event;
-mod segment;
-pub mod transaction;
+pub mod newrelic_fn;
 pub mod nr_connection;
+pub mod nr_init;
+mod segment;
 pub mod skill;
 pub mod tables;
-pub mod nr_init;
-pub mod newrelic_fn;
-pub mod acko_segment;
+pub mod transaction;
 
 pub use log::Level as LogLevel;
 
