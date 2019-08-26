@@ -1,6 +1,6 @@
 [package]
 name = "ackorelic"
-version = "0.1.6"
+version = "0.1.7"
 description = "Idiomatic Rust bindings to the New Relic C SDK."
 include = ["src/**/*", "Cargo.toml"]
 authors = ["Ankit Das <ankit.das@acko.tech>", "AbrarNitk <abrar.nitk@gmail.com>"]

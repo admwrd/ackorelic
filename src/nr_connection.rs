@@ -110,7 +110,6 @@ impl Connection for NRConnection {
         T: QueryFragment<Pg> + QueryId,
         U: QueryableByName<Pg>,
     {
-
         if *ENABLE_NEW_RELIC {
             let query = {
                 let mut qb = PgQueryBuilder::default();
