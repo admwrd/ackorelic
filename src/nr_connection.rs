@@ -1,17 +1,21 @@
-use diesel::connection::{AnsiTransactionManager, SimpleConnection};
-use diesel::deserialize::{Queryable, QueryableByName};
-use diesel::pg::{Pg, PgConnection, TransactionBuilder};
-use diesel::prelude::*;
-use diesel::query_builder::{AsQuery, QueryFragment, QueryId};
-use diesel::result::{ConnectionResult, QueryResult};
-use diesel::sql_types::HasSqlType;
+use diesel::{
+    connection::{AnsiTransactionManager, SimpleConnection},
+    deserialize::{Queryable, QueryableByName},
+    pg::PgQueryBuilder,
+    pg::{Pg, PgConnection, TransactionBuilder},
+    prelude::*,
+    query_builder::QueryBuilder,
+    query_builder::{AsQuery, QueryFragment, QueryId},
+    result::{ConnectionResult, QueryResult},
+    sql_types::HasSqlType,
+};
+
+use crate::{
+    newrelic_fn::TL_TRANSACTION, nr_init::ENABLE_NEW_RELIC, utils, Datastore,
+    DatastoreParamsBuilder,
+};
+
 //use diesel::query_builder::DebugQuery;
-
-use crate::{Datastore, DatastoreParamsBuilder};
-
-use crate::nr_init::ENABLE_NEW_RELIC;
-
-use crate::newrelic_fn::TL_TRANSACTION;
 
 pub struct NRConnection {
     pub conn: PgConnection,
@@ -28,10 +32,10 @@ impl Connection for NRConnection {
     type TransactionManager = AnsiTransactionManager;
 
     fn establish(database_url: &str) -> ConnectionResult<NRConnection> {
-        //println!("NRConnection::establish database_url: {}",database_url);
+        // println!("NRConnection::establish database_url: {}", database_url);
         if *ENABLE_NEW_RELIC {
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection("establish connections")
+                .collection("establish_connection")
                 .build()
                 .expect("Invalid datastore segment parameters");
             TL_TRANSACTION.with(|tr| {
@@ -50,11 +54,13 @@ impl Connection for NRConnection {
     }
 
     fn execute(&self, query: &str) -> QueryResult<usize> {
-        //println!("NRConnection::execute query: {}",query);
+        // println!("NRConnection::execute query: {}",query);
         if *ENABLE_NEW_RELIC {
+            let (operation, collection) = utils::parse_sql(&query);
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection(&query)
-                .operation(&query)
+                .collection(&collection)
+                .operation(&operation)
+                .query(&query.replace("\"", ""))
                 .build()
                 .expect("Invalid datastore segment parameters");
             TL_TRANSACTION.with(|tr| {
@@ -78,12 +84,13 @@ impl Connection for NRConnection {
         if *ENABLE_NEW_RELIC {
             let query = source.as_query();
             let query_str = diesel::debug_query(&query).to_string();
-            //println!("NRConnection::query_by_index :{}", query_str);
+            let (operation, collection) = utils::parse_sql(&query_str);
+            // println!("NRConnection::query_by_index :{}", query_str);
 
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection(&query_str)
-                //.operation("select")
-                .query(&query_str)
+                .collection(&collection)
+                .operation(&operation)
+                .query(&query_str.replace("\"", ""))
                 .build()
                 .expect("Invalid datastore segment parameters");
 
@@ -103,10 +110,19 @@ impl Connection for NRConnection {
         T: QueryFragment<Pg> + QueryId,
         U: QueryableByName<Pg>,
     {
-        //println!("NRConnection::query_by_name");
+
         if *ENABLE_NEW_RELIC {
+            let query = {
+                let mut qb = PgQueryBuilder::default();
+                source.to_sql(&mut qb)?;
+                qb.finish()
+            };
+            // println!("NRConnection::query_by_name :: {}", query);
+            let (operation, collection) = utils::parse_sql(&query);
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection("query_by_name")
+                .collection(&collection)
+                .operation(&operation)
+                .query(&query.replace("\"", ""))
                 .build()
                 .expect("Invalid datastore segment parameters");
 
@@ -125,10 +141,18 @@ impl Connection for NRConnection {
     where
         T: QueryFragment<Pg> + QueryId,
     {
-        //println!("NRConnection::execute_returning_count");
         if *ENABLE_NEW_RELIC {
+            let query = {
+                let mut qb = PgQueryBuilder::default();
+                source.to_sql(&mut qb)?;
+                qb.finish()
+            };
+            // println!("NRConnection::execute_returning_count: {}", query);
+            let (operation, collection) = utils::parse_sql(&query);
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
-                .collection("execute_returning_count")
+                .collection(&collection)
+                .operation(&operation)
+                .query(&query.replace("\"", ""))
                 .build()
                 .expect("Invalid datastore segment parameters");
 

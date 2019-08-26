@@ -93,6 +93,10 @@ impl App {
     pub fn non_web_transaction(&self, name: &str) -> Result<Transaction> {
         Transaction::non_web(self, name)
     }
+
+    pub fn status(&self) {
+        println!("newrelic app connected");
+    }
 }
 
 impl Drop for App {

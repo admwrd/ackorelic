@@ -92,6 +92,7 @@ pub use crate::segment::{
     Datastore, DatastoreParams, DatastoreParamsBuilder, ExternalParams, ExternalParamsBuilder,
     Segment,
 };
+pub mod utils;
 pub use crate::transaction::{Attribute, Transaction};
 
 //use diesel::prelude::*;

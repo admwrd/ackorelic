@@ -1,6 +1,6 @@
 [package]
 name = "ackorelic"
-version = "0.1.1"
+version = "0.1.6"
 description = "Idiomatic Rust bindings to the New Relic C SDK."
 include = ["src/**/*", "Cargo.toml"]
 authors = ["Ankit Das <ankit.das@acko.tech>", "AbrarNitk <abrar.nitk@gmail.com>"]
@@ -16,4 +16,5 @@ derive_more = "0.14.0"
 log = ">0.4.0"
 newrelic-sys = "0.1"
 diesel = { version = "1.0.0", features = ["postgres"] }
+sqlparser="0.4.0"
 lazy_static = "~1.3.0"
