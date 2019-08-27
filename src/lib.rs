@@ -94,7 +94,8 @@ pub use crate::segment::{
 };
 pub mod utils;
 pub use crate::transaction::{Attribute, Transaction};
-
+#[cfg(test)]
+mod tests;
 //use diesel::prelude::*;
 
 //pub use crate::nr_connection::NRConnection;
