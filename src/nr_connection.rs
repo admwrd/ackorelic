@@ -39,18 +39,17 @@ impl Connection for NRConnection {
                 .build()
                 .expect("Invalid datastore segment parameters");
             TL_TRANSACTION.with(|tr| {
-                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                    let pg_conn = PgConnection::establish(database_url)?;
-                    Ok(NRConnection { conn: pg_conn })
-                });
-                value
+                tr.borrow().as_ref().map_or_else(
+                    || NRConnection::new(database_url),
+                    |trans| {
+                        trans
+                            .datastore_segment(&segment_params, |_| NRConnection::new(database_url))
+                    },
+                )
             })
         } else {
-            let pg_conn = PgConnection::establish(database_url)?;
-            Ok(NRConnection { conn: pg_conn })
+            NRConnection::new(database_url)
         }
-        //let pg_conn = PgConnection::establish(database_url)?;
-        //Ok(NRConnection{conn: pg_conn})
     }
 
     fn execute(&self, query: &str) -> QueryResult<usize> {
@@ -63,11 +62,11 @@ impl Connection for NRConnection {
                 .query(&query.replace("\"", ""))
                 .build()
                 .expect("Invalid datastore segment parameters");
-            TL_TRANSACTION.with(|tr| {
-                let value = tr
-                    .borrow_mut()
-                    .datastore_segment(&segment_params, |_| self.conn.execute(query));
-                value
+            TL_TRANSACTION.with(|tr| match tr.borrow().as_ref() {
+                Some(trans) => {
+                    trans.datastore_segment(&segment_params, |_| self.conn.execute(query))
+                }
+                None => self.conn.execute(query),
             })
         } else {
             self.conn.execute(query)
@@ -94,11 +93,11 @@ impl Connection for NRConnection {
                 .build()
                 .expect("Invalid datastore segment parameters");
 
-            TL_TRANSACTION.with(|tr| {
-                let value = tr
-                    .borrow_mut()
-                    .datastore_segment(&segment_params, |_| self.conn.query_by_index(query));
-                value
+            TL_TRANSACTION.with(|tr| match tr.borrow().as_ref() {
+                Some(trans) => {
+                    trans.datastore_segment(&segment_params, |_| self.conn.query_by_index(query))
+                }
+                None => self.conn.query_by_index(query),
             })
         } else {
             self.conn.query_by_index(source)
@@ -126,10 +125,13 @@ impl Connection for NRConnection {
                 .expect("Invalid datastore segment parameters");
 
             TL_TRANSACTION.with(|tr| {
-                let value = tr
-                    .borrow_mut()
-                    .datastore_segment(&segment_params, |_| self.conn.query_by_name(source));
-                value
+                tr.borrow().as_ref().map_or_else(
+                    || self.conn.query_by_name(source),
+                    |trans| {
+                        trans
+                            .datastore_segment(&segment_params, |_| self.conn.query_by_name(source))
+                    },
+                )
             })
         } else {
             self.conn.query_by_name(source)
@@ -156,10 +158,19 @@ impl Connection for NRConnection {
                 .expect("Invalid datastore segment parameters");
 
             TL_TRANSACTION.with(|tr| {
-                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                    self.conn.execute_returning_count(source)
-                });
-                value
+                tr.borrow().as_ref().map_or_else(
+                    || self.conn.execute_returning_count(&source),
+                    |trans| {
+                        trans.datastore_segment(&segment_params, |_| {
+                            self.conn.execute_returning_count(&source)
+                        })
+                    },
+                )
+
+                //                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
+                //                    self.conn.execute_returning_count(source)
+                //                });
+                //                value
             })
         } else {
             self.conn.execute_returning_count(source)
@@ -167,12 +178,16 @@ impl Connection for NRConnection {
     }
 
     fn transaction_manager(&self) -> &Self::TransactionManager {
-        //println!("NRConnection::transaction_manager");
         self.conn.transaction_manager()
     }
 }
 
 impl NRConnection {
+    fn new(url: &str) -> ConnectionResult<Self> {
+        Ok(NRConnection {
+            conn: PgConnection::establish(url)?,
+        })
+    }
     pub fn build_transaction(&self) -> TransactionBuilder {
         self.conn.build_transaction()
     }
