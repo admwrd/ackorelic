@@ -53,7 +53,9 @@ impl Connection for NRConnection {
     }
 
     fn execute(&self, query: &str) -> QueryResult<usize> {
-        // println!("NRConnection::execute query: {}",query);
+        #[cfg(debug_asserions)]
+        println!("ExecuteQuery: {:?}", query);
+
         if *ENABLE_NEW_RELIC {
             let (operation, collection) = utils::parse_sql(&query);
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
@@ -80,11 +82,13 @@ impl Connection for NRConnection {
         Pg: HasSqlType<T::SqlType>,
         U: Queryable<T::SqlType, Pg>,
     {
+        let query = source.as_query();
+        let query_str = diesel::debug_query(&query).to_string();
+        #[cfg(debug_assertions)]
+        println!("QueryByIndex: {:?}", query_str);
+
         if *ENABLE_NEW_RELIC {
-            let query = source.as_query();
-            let query_str = diesel::debug_query(&query).to_string();
             let (operation, collection) = utils::parse_sql(&query_str);
-            // println!("NRConnection::query_by_index :{}", query_str);
 
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
                 .collection(&collection)
@@ -100,7 +104,7 @@ impl Connection for NRConnection {
                 None => self.conn.query_by_index(query),
             })
         } else {
-            self.conn.query_by_index(source)
+            self.conn.query_by_index(query)
         }
     }
 
@@ -109,13 +113,15 @@ impl Connection for NRConnection {
         T: QueryFragment<Pg> + QueryId,
         U: QueryableByName<Pg>,
     {
+        let query = {
+            let mut qb = PgQueryBuilder::default();
+            source.to_sql(&mut qb)?;
+            qb.finish()
+        };
+        #[cfg(debug_assertions)]
+        println!("QueryByName: {:?}", query);
+
         if *ENABLE_NEW_RELIC {
-            let query = {
-                let mut qb = PgQueryBuilder::default();
-                source.to_sql(&mut qb)?;
-                qb.finish()
-            };
-            // println!("NRConnection::query_by_name :: {}", query);
             let (operation, collection) = utils::parse_sql(&query);
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
                 .collection(&collection)
@@ -142,12 +148,16 @@ impl Connection for NRConnection {
     where
         T: QueryFragment<Pg> + QueryId,
     {
+        let query = {
+            let mut qb = PgQueryBuilder::default();
+            source.to_sql(&mut qb)?;
+            qb.finish()
+        };
+
+        #[cfg(debug_assertions)]
+        println!("QueryCount: {:?}", query);
+
         if *ENABLE_NEW_RELIC {
-            let query = {
-                let mut qb = PgQueryBuilder::default();
-                source.to_sql(&mut qb)?;
-                qb.finish()
-            };
             // println!("NRConnection::execute_returning_count: {}", query);
             let (operation, collection) = utils::parse_sql(&query);
             let segment_params = DatastoreParamsBuilder::new(Datastore::Postgres)
@@ -166,11 +176,6 @@ impl Connection for NRConnection {
                         })
                     },
                 )
-
-                //                let value = tr.borrow_mut().datastore_segment(&segment_params, |_| {
-                //                    self.conn.execute_returning_count(source)
-                //                });
-                //                value
             })
         } else {
             self.conn.execute_returning_count(source)
