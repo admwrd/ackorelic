@@ -22,8 +22,14 @@ impl Dialect for AckoPostgresSqlDialect {
     }
 }
 
+fn split_query_by_where(query: &str) -> String {
+    let query = query.to_lowercase();
+    let sql: Vec<&str> = query.split("where").collect::<Vec<&str>>();
+    sql.first().unwrap_or(&query.as_str()).to_string()
+}
+
 pub fn parse_sql(sql: &str) -> (String, String) {
-    match Parser::parse_sql(&AckoPostgresSqlDialect {}, sql.to_string()) {
+    match Parser::parse_sql(&AckoPostgresSqlDialect {}, split_query_by_where(sql)) {
         Ok(ast) => {
             for x in ast {
                 match x {
@@ -80,6 +86,7 @@ pub fn parse_sql(sql: &str) -> (String, String) {
             }
         }
         Err(_err) => {
+            #[cfg(debug_assertions)]
             println!("Err : {:?}", _err);
             return (sql.to_string(), "".to_string());
         }
@@ -159,6 +166,34 @@ mod tests {
             ("select".to_string(), "\"users_skill\"".to_string())
         );
 
+        assert_eq!(
+            parse_sql(
+                r#"
+            SELECT "ackore_policy"."id", "ackore_policy"."data", "ackore_policy"."created_on",
+            "ackore_policy"."updated_on", "ackore_policy"."plan_id", "ackore_policy"."user_id",
+            "ackore_policy"."output", "ackore_policy"."sort_on", "ackore_policy"."payment_id",
+            "ackore_policy"."insurance_data", "ackore_policy"."intermediary_id",
+            "ackore_policy"."policy_number", "ackore_policy"."refund_id"
+            FROM "ackore_policy" WHERE "ackore_policy"."id" = $1 LIMIT $2 -- binds: [143343871, 1]
+        "#
+            ),
+            ("select".to_string(), "\"ackore_policy\"".to_string())
+        );
+
+        assert_eq!(
+            parse_sql(
+                r#"
+        SELECT customer.customer_id FROM customer
+        INNER JOIN payment ON payment.customer_id = customer.customer_id
+        INNER JOIN payment1 ON payment1.customer_id = customer.customer_id;
+        "#
+            ),
+            (
+                "select".to_string(),
+                "customer, payment, payment1".to_string()
+            )
+        );
+
         //        assert_eq!(
         //            parse_sql(r#"
         //                BEGIN;
@@ -178,5 +213,37 @@ mod tests {
         //            parse_sql("ALTER TABLE table_name ADD COLUMN new_column_name varchar"),
         //            ("create view".to_string(), "employee".to_string())
         //        );
+    }
+
+    #[test]
+    fn split_sql_test1() {
+        let sql = r#"
+            SELECT "ackore_policy"."id", "ackore_policy"."data", "ackore_policy"."created_on",
+            "ackore_policy"."updated_on", "ackore_policy"."plan_id", "ackore_policy"."user_id",
+            "ackore_policy"."output", "ackore_policy"."sort_on", "ackore_policy"."payment_id",
+            "ackore_policy"."insurance_data", "ackore_policy"."intermediary_id",
+            "ackore_policy"."policy_number", "ackore_policy"."refund_id"
+            FROM "ackore_policy" WHERE "ackore_policy"."id" = $1 LIMIT $2 -- binds: [143343871, 1]
+            "#;
+        assert_eq!(
+            r#"
+            select "ackore_policy"."id", "ackore_policy"."data", "ackore_policy"."created_on",
+            "ackore_policy"."updated_on", "ackore_policy"."plan_id", "ackore_policy"."user_id",
+            "ackore_policy"."output", "ackore_policy"."sort_on", "ackore_policy"."payment_id",
+            "ackore_policy"."insurance_data", "ackore_policy"."intermediary_id",
+            "ackore_policy"."policy_number", "ackore_policy"."refund_id"
+            from "ackore_policy" "#,
+            super::split_query_by_where(sql)
+        );
+    }
+
+    #[test]
+    fn split_sql_test2() {
+        let sql = r#"
+        SELECT customer.customer_id FROM customer
+        INNER JOIN payment ON payment.customer_id = customer.customer_id
+        INNER JOIN payment1 ON payment1.customer_id = customer.customer_id;
+        "#;
+        assert_eq!(sql.to_lowercase(), super::split_query_by_where(sql));
     }
 }
