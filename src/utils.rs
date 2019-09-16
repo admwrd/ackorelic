@@ -246,4 +246,33 @@ mod tests {
         "#;
         assert_eq!(sql.to_lowercase(), super::split_query_by_where(sql));
     }
+
+    #[ignore] // TODO: This test is failing, need to fix it.
+    #[test]
+    fn split_sql_test3() {
+        let sql = r#"
+        SELECT DISTINCT ON ("ackore_proposal"."id")"ackore_proposal"."id", "ackore_proposal"."product",
+        "ackore_proposal"."data", "ackore_proposal"."created_on", "ackore_proposal"."updated_on",
+        "ackore_proposal"."ut_lead_id", "ackore_proposal"."payment_id", "ackore_proposal"."refund_id",
+        "ackore_proposal"."intermediary_id", "ackore_utlead"."id", "ackore_utlead"."aid",
+        "ackore_utlead"."asset_id", "ackore_utlead"."lead_id", "ackore_utlead"."tracker_id",
+        "ackore_utlead"."user_id", "payments_payment"."id", "payments_payment"."app",
+        "payments_payment"."okind", "payments_payment"."oid", "payments_payment"."status",
+        "payments_payment"."amount", "payments_payment"."form_data", "payments_payment"."pg",
+        "payments_payment"."pg_token", "payments_payment"."pg_response", "payments_payment"."offline",
+        "payments_payment"."cancel", "payments_payment"."user_id", "payments_payment"."failure",
+        "payments_payment"."success", "payments_payment"."intent", "payments_payment"."created_on",
+        "payments_payment"."updated_on", "payments_payment"."payment_method", "payments_payment"."order_id",
+        "payments_payment"."payment_on" FROM (("ackore_proposal" INNER JOIN "ackore_utlead" ON
+        "ackore_proposal"."ut_lead_id" = "ackore_utlead"."id") LEFT OUTER JOIN "payments_payment" ON
+        "ackore_proposal"."payment_id" = "payments_payment"."id") WHERE ("ackore_utlead"."user_id" = $1
+        OR "ackore_utlead"."tracker_id" = $2) AND ("ackore_proposal"."refund_id" is NULL) AND
+        ("ackore_proposal"."payment_id" is NULL OR "payments_payment"."status" != ALL ($3))
+        AND "ackore_proposal"."updated_on" >= $4 ORDER BY "ackore_proposal"."id" DESC,
+        "ackore_proposal"."updated_on" DESC LIMIT $5 -- binds: [Some(2), None,
+        ["done", "successful", "fully-refunded", "partially-refunded"], 2019-09-01T13:20:57.312071IST, 50]
+    "#;
+        println!("{:?}", super::parse_sql(&sql.replace("\"", "")));
+    }
+
 }
