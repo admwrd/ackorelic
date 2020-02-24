@@ -17,5 +17,5 @@ log = ">0.4.0"
 newrelic-sys = "0.1"
 diesel = { version = "1.0.0", features = ["postgres"] }
 sqlparser="0.4.0"
-lazy_static = "~1.3.0"
+lazy_static = "1"
 threadpool = "1.7.1"
