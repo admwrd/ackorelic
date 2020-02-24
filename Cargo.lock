@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "ackorelic"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "derive_more 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "diesel 1.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
